@@ -86,6 +86,8 @@ if "current_character" not in st.session_state or st.session_state.current_chara
 if "chat_session" not in st.session_state or st.session_state.chat_session is None:
     st.session_state.chat_session = model.start_chat(history=[])
 
+from google.api_core.exceptions import ResourceExhausted # Add this to the very top of your file with the other imports!
+
 # --- 6. CHAT INTERFACE ---
 for message in st.session_state.chat_history:
     with st.chat_message(message["role"]):
@@ -94,10 +96,26 @@ for message in st.session_state.chat_history:
 user_input = st.chat_input(f"Speak to {selected_name}...")
 
 if user_input:
+    # 1. Show user message
     st.chat_message("user").markdown(user_input)
     st.session_state.chat_history.append({"role": "user", "content": user_input})
     
-    response = st.session_state.chat_session.send_message(user_input)
+    # 2. Try to get AI response safely
+    try:
+        response = st.session_state.chat_session.send_message(user_input)
+        with st.chat_message("assistant"):
+            st.markdown(response.text)
+        st.session_state.chat_history.append({"role": "assistant", "content": response.text})
+        
+    except ResourceExhausted:
+        # 3. Catch the speed-limit error gracefully!
+        st.error("🚨 **Connection Interrupted by the Ministry of Truth.** \n\nThe telescreen network is currently overloaded. Please wait 60 seconds and try sending your message again.")
+        # We remove the user's last message from history so they can try it again
+        st.session_state.chat_history.pop()
+        
+    except Exception as e:
+        # Catch any other random errors
+        st.error("An unexpected error occurred. Please try again.")
     
     with st.chat_message("assistant"):
         st.markdown(response.text)
