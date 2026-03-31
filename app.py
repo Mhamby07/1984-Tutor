@@ -103,9 +103,26 @@ if user_input:
     # 2. Try to get AI response safely
     try:
         response = st.session_state.chat_session.send_message(user_input)
+        
+        # Display the response if it successfully generates
         with st.chat_message("assistant"):
             st.markdown(response.text)
         st.session_state.chat_history.append({"role": "assistant", "content": response.text})
+        
+    except ResourceExhausted:
+        # Catch the speed-limit error
+        st.error("🚨 **Connection Interrupted by the Ministry of Truth.** \n\nThe telescreen network is currently overloaded. Please wait 60 seconds and try again.")
+        st.session_state.chat_history.pop() # Remove the student's message so they can try again
+        
+    except ValueError:
+        # Catch Google's Safety Filters blocking dystopian 1984 topics
+        st.error("🚨 **Thought Police Intervention.** \n\nThe AI's safety filters blocked this response due to the dark themes of 1984. Please try rephrasing your question to be less explicit.")
+        st.session_state.chat_history.pop()
+        
+    except Exception as e:
+        # Catch any other random errors so the app never crashes
+        st.error("An unexpected error occurred. Please refresh the page and try again.")
+        st.session_state.chat_history.pop()
         
     except ResourceExhausted:
         # 3. Catch the speed-limit error gracefully!
