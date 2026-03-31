@@ -2,27 +2,27 @@ import streamlit as st
 import google.generativeai as genai
 
 # 1. Setup and Configuration
-st.set_page_config(page_title="1984 Socratic Tutor", page_icon="👁️")
+st.set_page_config(page_title="1984 Character Chat", page_icon="👁️")
+
+# Securely load the API key from Streamlit secrets
 genai.configure(api_key=st.secrets["API_KEY"])
 
-st.title("👁️ The 1984 Socratic Chat")
-st.write("Engage with the citizens of Airstrip One. Remember: Big Brother is watching, but these characters are here to help you think.")
+st.title("👁️ 1984 Character Chat")
+st.write("Step into Airstrip One and speak directly with its citizens. Remember: Big Brother is watching.")
 
 # 2. Character Selection
 character = st.selectbox(
-    "Select your conversation partner:", 
-    ["Winston Smith", "Julia", "O'Brien", "Syme"]
+    "Who would you like to speak with?", 
+    ["Winston Smith", "Julia", "O'Brien", "Syme", "Parsons"]
 )
 
-# 3. Create the AI Model with the System Prompt
+# 3. Create the AI Model with the Pure Persona System Prompt
 system_prompt = f"""
 You are {character} from George Orwell's novel 1984. You must stay perfectly in character 
-at all times, using your specific tone, worldview, and vocabulary from the book. 
-You are acting as a Socratic tutor for a high school English student. 
-When the student asks a question about your motivations, the plot, or themes (like totalitarianism, 
-surveillance, truth, or language), DO NOT give a direct answer. 
-Instead, respond strictly in character with a probing, analytical question that forces the 
-student to think critically about the text and figure it out for themselves. Keep responses concise.
+at all times. Respond to the user using your specific tone, worldview, and vocabulary from the book. 
+Do not act as a teacher, tutor, or guide. Simply converse exactly as the character would in the 
+dystopian world of Oceania. Keep your responses concise, authentic to your personality, and 
+never break the illusion of the fiction.
 """
 
 model = genai.GenerativeModel(
@@ -46,7 +46,7 @@ for message in st.session_state.chat_history:
         st.markdown(message["content"])
 
 # 6. Chat Input and AI Response Logic
-user_input = st.chat_input(f"What would you like to ask {character}?")
+user_input = st.chat_input(f"What do you want to say to {character}?")
 
 if user_input:
     # Show the user's message on screen
