@@ -2,13 +2,13 @@ import streamlit as st
 import google.generativeai as genai
 from google.api_core.exceptions import ResourceExhausted
 import re
-import os # Required to check for local image files
+import os 
 
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(page_title="Oceania Citizen Portal", page_icon="👁️", layout="wide")
 genai.configure(api_key=st.secrets["API_KEY"])
 
-# --- 2. GAMEPLAY DICTIONARIES (WITH IMAGES) ---
+# --- 2. GAMEPLAY DICTIONARIES ---
 CHARACTERS = {
     "Winston Smith": {
         "bio": "A minor Outer Party member. Thoughtful, fatalistic, and secretly rebellious.",
@@ -37,11 +37,24 @@ CHARACTERS = {
     }
 }
 
+# UPDATED: Locations are now a database that includes image files!
 LOCATIONS = {
-    "Ministry of Truth Canteen": "A loud, crowded cafeteria. Telescreens are everywhere. You must speak loudly about how much you love Big Brother to avoid suspicion. Be extremely paranoid.",
-    "Victory Square": "A busy public square. There are crowds, patrols, and telescreens. Keep conversations brief and orthodox.",
-    "The Room Above Mr. Charrington's Shop": "A dusty, quiet room with no telescreen (or so you think). You feel safe here. You can speak freely and openly about your true feelings.",
-    "Room 101": "The lowest level of the Ministry of Love. The ultimate nightmare. If you are an Outer Party member, you are terrified, broken, and begging for mercy. If you are O'Brien, you are in total control."
+    "Ministry of Truth Canteen": {
+        "rules": "A loud, crowded cafeteria. Telescreens are everywhere. You must speak loudly about how much you love Big Brother to avoid suspicion. Be extremely paranoid.",
+        "image_file": "canteen.jpeg"
+    },
+    "Victory Square": {
+        "rules": "A busy public square. There are crowds, patrols, and telescreens. Keep conversations brief and orthodox.",
+        "image_file": "victory_square.jpeg"
+    },
+    "The Room Above Mr. Charrington's Shop": {
+        "rules": "A dusty, quiet room with no telescreen (or so you think). You feel safe here. You can speak freely and openly about your true feelings.",
+        "image_file": "charrington.jpeg"
+    },
+    "Room 101": {
+        "rules": "The lowest level of the Ministry of Love. The ultimate nightmare. If you are an Outer Party member, you are terrified, broken, and begging for mercy. If you are O'Brien, you are in total control.",
+        "image_file": "room101.jpeg"
+    }
 }
 
 # --- 3. REDACTION & THOUGHTCRIME LOGIC ---
@@ -74,19 +87,24 @@ if "chat_history" not in st.session_state:
 if "game_over" not in st.session_state:
     st.session_state.game_over = False
 
-# --- 5. SIDEBAR UI (NOW WITH IMAGE LOGIC) ---
+# --- 5. SIDEBAR UI (NOW WITH LOCATION IMAGES) ---
 with st.sidebar:
     st.title("👁️ Ministry of Truth")
     
+    # 1. Character Selection & Image
     selected_name = st.selectbox("Select a Citizen:", list(CHARACTERS.keys()))
+    char_image_path = CHARACTERS[selected_name].get("image_file", "")
+    if char_image_path and os.path.exists(char_image_path):
+        st.image(char_image_path, use_column_width=True)
     
-    # Check for and display the image!
-    image_path = CHARACTERS[selected_name].get("image_file", "")
-    if image_path and os.path.exists(image_path):
-        st.image(image_path, use_column_width=True)
+    st.markdown("---")
     
+    # 2. Location Selection & Image
     selected_location = st.selectbox("Select Location:", list(LOCATIONS.keys()))
-    
+    loc_image_path = LOCATIONS[selected_location].get("image_file", "")
+    if loc_image_path and os.path.exists(loc_image_path):
+        st.image(loc_image_path, use_column_width=True, caption=f"Current Location: {selected_location}")
+        
     st.markdown("---")
     st.subheader("🚨 Telescreen Suspicion Level")
     
@@ -119,13 +137,14 @@ if st.session_state.suspicion_level >= 100:
 st.title(f"🗣️ {selected_name}")
 st.caption(f"📍 Current Location: {selected_location}")
 
+# UPDATED: Pulls location rules from the new dictionary structure
 dynamic_prompt = f"""
 You are {selected_name} from George Orwell's novel 1984. 
 {CHARACTERS[selected_name]['prompt_addition']}
 
 CRITICAL CONTEXT:
 You are currently located in: {selected_location}. 
-Location rules: {LOCATIONS[selected_location]}
+Location rules: {LOCATIONS[selected_location]['rules']}
 
 CRITICAL INSTRUCTIONS:
 1. Only use information and world-building found explicitly in 1984.
