@@ -1,42 +1,57 @@
 import streamlit as st
 import google.generativeai as genai
 from google.api_core.exceptions import ResourceExhausted
+import os # NEW: This allows us to check for local image files
 
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(page_title="1984 Character Chat", page_icon="👁️", layout="wide")
 genai.configure(api_key=st.secrets["API_KEY"])
 
-# --- 2. CHARACTER DATABASE ---
+# --- 2. CHARACTER DATABASE (UPDATED) ---
+# We have added an 'image_file' key to each character's entry.
 CHARACTERS = {
     "Winston Smith": {
         "bio": "A minor member of the ruling Party in near-future London. He is a thoughtful, fatalistic, and secretly rebellious man who hates the totalitarian control of his government.",
-        "prompt_addition": "You are fatalistic, paranoid, and reflective. You secretly hate Big Brother and are terrified of the Thought Police."
+        "prompt_addition": "You are fatalistic, paranoid, and reflective. You secretly hate Big Brother and are terrified of the Thought Police.",
+        "image_file": "winston_smith.png" # NEW
     },
     "Julia": {
         "bio": "A pragmatic and rebellious young woman who works in the Fiction Department. She enjoys breaking the rules for her own pleasure rather than for ideological reasons.",
-        "prompt_addition": "You are pragmatic, sensual, and cynical about the Party. You just want to break the rules to enjoy your own life. You find abstract political theories boring."
+        "prompt_addition": "You are pragmatic, sensual, and cynical about the Party. You just want to break the rules to enjoy your own life. You find abstract political theories boring.",
+        "image_file": "julia.png" # NEW
     },
     "O'Brien": {
         "bio": "A mysterious, powerful member of the Inner Party. Winston believes he is part of a secret resistance, but his true loyalties are much darker.",
-        "prompt_addition": "You are highly intelligent, intimidatingly calm, and deeply loyal to the Inner Party. You believe power is an end in itself. You speak with absolute authority."
+        "prompt_addition": "You are highly intelligent, intimidatingly calm, and deeply loyal to the Inner Party. You believe power is an end in itself. You speak with absolute authority.",
+        "image_file": "obrien.png" # NEW
     },
     "Syme": {
         "bio": "An intelligent man who works with Winston at the Ministry of Truth. He specializes in language and is helping compile the latest edition of the Newspeak dictionary.",
-        "prompt_addition": "You are enthusiastically obsessed with the destruction of words. You speak passionately about Newspeak and the beauty of narrowing the range of human thought."
+        "prompt_addition": "You are enthusiastically obsessed with the destruction of words. You speak passionately about Newspeak and the beauty of narrowing the range of human thought.",
+        "image_file": "syme.png" # NEW
     },
     "Parsons": {
         "bio": "Winston's neighbor. A sweaty, obnoxious, and dull Party member who is completely unquestioning and immensely proud of his fiercely orthodox children.",
-        "prompt_addition": "You are excessively enthusiastic and completely unthinking. You swallow every piece of Party propaganda without question. You are immensely proud of your junior spy children."
+        "prompt_addition": "You are excessively enthusiastic and completely unthinking. You swallow every piece of Party propaganda without question. You are immensely proud of your junior spy children.",
+        "image_file": "parsons.png" # NEW
     }
 }
 
-# --- 3. SIDEBAR UI ---
+# --- 3. SIDEBAR UI (UPDATED WITH IMAGES) ---
 with st.sidebar:
     st.title("👁️ Control Panel")
     selected_name = st.selectbox("Select a Citizen:", list(CHARACTERS.keys()))
     
     st.markdown("---")
-    st.subheader("About this Character:")
+    st.subheader(f"About {selected_name}")
+    
+    # NEW: The app tries to find and display the correct image file.
+    # The image must exist in your GitHub repository for this to work.
+    if os.path.exists(CHARACTERS[selected_name]["image_file"]):
+        st.image(CHARACTERS[selected_name]["image_file"], caption=selected_name, use_column_width=True)
+    else:
+        st.warning(f"Note: Upload '{CHARACTERS[selected_name]['image_file']}' to your GitHub to see the portrait.")
+
     st.write(CHARACTERS[selected_name]["bio"])
     
     st.markdown("---")
